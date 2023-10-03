@@ -27,7 +27,56 @@ class ReflexAgent(Agent):
     it in any way you see fit, so long as you don't touch our method
     headers.
     """
+    
+    def manhattanDistance(self, x1, y1, x2, y2):
+        return abs(x1-x2)+abs(y1-y2)
+    
+    def makePossibleGhostStates(self, tuple):
+        return {
+            (tuple[0]-1,tuple[1]): True, 
+            (tuple[0]+1, tuple[1]): True, 
+            (tuple[0], tuple[1]-1): True, 
+            (tuple[0], tuple[1]+1): True,
+            tuple: True
+        }
 
+    def closestFoodFinder(self, tuple, FoodGrid):
+        x=tuple[0]
+        y=tuple[1]
+
+        #print(FoodGrid)
+
+        if FoodGrid[x][y] == True: #something brokjen with this function
+            #print("ANGIEANGIE")
+            return 105
+        
+        #print("Height: ",FoodGrid.height)
+        #print("Width: ", FoodGrid.width)
+
+        rowCounter=0
+        colCounter=0
+
+        minDist=5000
+
+        while rowCounter < FoodGrid.width: 
+            colCounter=0
+            while colCounter < FoodGrid.height:
+                #print(rowCounter, colCounter, FoodGrid[rowCounter][colCounter])
+                if FoodGrid[rowCounter][colCounter] == True:
+                    #print("Distance: ", self.manhattanDistance(x, y, rowCounter, colCounter))
+                    minDist=min(minDist, self.manhattanDistance(x, y, rowCounter, colCounter))
+                if minDist==1:
+                    return 99
+                colCounter+=1
+
+            rowCounter+=1
+
+        #print(minDist)
+        
+        return(100-minDist)
+
+
+        
 
     def getAction(self, gameState):
         """
@@ -41,6 +90,8 @@ class ReflexAgent(Agent):
         # Collect legal moves and successor states
         legalMoves = gameState.getLegalActions()
 
+        
+
         # Choose one of the best actions
         scores = [self.evaluationFunction(gameState, action) for action in legalMoves]
         bestScore = max(scores)
@@ -48,6 +99,8 @@ class ReflexAgent(Agent):
         chosenIndex = random.choice(bestIndices) # Pick randomly among the best
 
         "Add more of your code here if you want to"
+
+        #print("\n")
 
         return legalMoves[chosenIndex]
 
@@ -73,8 +126,49 @@ class ReflexAgent(Agent):
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
+        scoreToReturn = 0
+
+        """
+        if action == 'Stop':
+            return 0
+        """
+        #print(type(newFood))
+
+        #can check to see if the new position would eat a Food:
+
+        #print(newPos, type(newPos), "\n")\
+
+        #print(action)
+
+        #print(newFood, "\n")
+
+        
+        
+        for ghost in newGhostStates: 
+            #print(ghost.getPosition())
+            
+            if newPos in self.makePossibleGhostStates(tuple=ghost.getPosition()):
+                #print(newPos, ghost.getPosition())
+                scoreToReturn -= 200
+        
+        return scoreToReturn
+        #return scoreToReturn
+        score=self.closestFoodFinder(newPos, newFood)
+        #print(action, scoreToReturn+score)
+
+        return scoreToReturn + score
+    
+
+        
+        if currentGameState.getFood()[newPos[0]][newPos[1]] == True:
+            #this State Gets a Food!!
+            #print("This state would eat food!")
+            scoreToReturn += 5
+        
+        return scoreToReturn
+
         "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        #return successorGameState.getScore()
 
 def scoreEvaluationFunction(currentGameState):
     """
