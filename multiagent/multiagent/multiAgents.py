@@ -208,7 +208,87 @@ class MinimaxAgent(MultiAgentSearchAgent):
     """
     Your minimax agent (question 2)
     """
+    
+    def pacmanMaxFunc(self, gameState, totalDepthToGoTo, currDepth, numAgents):
 
+
+
+        print("AT THE TOP OF PACMAN MAX FUNC AT CURRENT DEPTH OF ", currDepth)
+
+        if gameState.isWin() or gameState.isLose(): 
+            print("WIN/LOSS STATE")
+            return self.evaluationFunction(gameState)
+
+        if currDepth == 1: #Jack ignore this its basically just shit code because i originiall wrote the code to only return the Score for minimax, and not the action associated with that score so had to add some shite code
+            maxScore=float('-inf')
+            actionToReturn='None'
+
+            scores=[]
+
+            for action in gameState.getLegalActions(agentIndex=0): # for move in legal moves for pacman
+                thisScore=self.ghostMinFunc(gameState=gameState.generateSuccessor(0, action), totalDepthToGoTo=totalDepthToGoTo, currDepth=currDepth, numAgents=numAgents, currAgentNum=1)
+                scores.append(thisScore)
+                if maxScore < thisScore: 
+                    print("maxScore < thisScore in PacmanMaxFunc Depth=1", "MaxScore: ", maxScore, "thiScore", thisScore)
+                    maxScore=thisScore
+                    actionToReturn=action
+            print(scores)
+            return (maxScore, actionToReturn)
+        
+
+
+        maxScore=float('-inf')
+        scores=[]
+        for action in gameState.getLegalActions(agentIndex=0): # for move in legal moves for pacman
+            thisScore=self.ghostMinFunc(gameState=gameState.generateSuccessor(0, action), totalDepthToGoTo=totalDepthToGoTo, currDepth=currDepth, numAgents=numAgents, currAgentNum=1)
+            maxScore=max(maxScore, thisScore)#self.ghostMinFunc(gameState=gameState.generateSuccessor(0, action), totalDepthToGoTo=totalDepthToGoTo, currDepth=currDepth, numAgents=numAgents, currAgentNum=1))
+            scores.append(thisScore)
+        print("SCORES: ", scores)
+        return maxScore
+    
+    def ghostMinFunc(self, gameState, totalDepthToGoTo, currDepth, numAgents, currAgentNum):
+
+        if gameState.isWin() or gameState.isLose(): 
+            print("WIN/LOSS STATE")
+            return self.evaluationFunction(gameState)
+
+        print("Looking at ghost: ", currAgentNum, "At Depth: ", currDepth)
+
+        if currAgentNum == numAgents - 1: #if we are on the last ghost
+            print("ON THE LAST GHOST")
+
+            minScore = float('inf')
+            scores=[]
+            if len(gameState.getLegalActions(currAgentNum)) == 0: 
+                print("NO ACTIONS FOR LAST GHOST ARE AVAILABLE, RETURNING -INF")
+                return float('inf')
+            for action in gameState.getLegalActions(agentIndex=currAgentNum):
+                
+                if currDepth == self.depth: 
+                    
+                    scoreAtThisState=self.evaluationFunction(gameState.generateSuccessor(currAgentNum, action))
+                    print("REACHED A Kinda-Leaf, a place where the recursion will end with SCORE: ", scoreAtThisState)
+                    minScore = min(minScore, scoreAtThisState)
+
+                    scores.append(scoreAtThisState)
+                
+                else: 
+                    minScore=min(minScore, self.pacmanMaxFunc(gameState=gameState.generateSuccessor(currAgentNum, action), totalDepthToGoTo=totalDepthToGoTo, currDepth=currDepth+1, numAgents=numAgents))
+            print("ABout to return this minScore: ", minScore, "From these Scores", scores, "at agent", currAgentNum, "at depth", currDepth)
+            return minScore
+        
+        else: 
+            print("PROBS ABOUT TO RETURN INFINITY FOR NO FUCKING REASON")
+            minScore = float('inf')
+
+            print(gameState.getLegalActions(currAgentNum))
+            if len(gameState.getLegalActions(currAgentNum)) == 0: 
+                return float('-inf')
+            for action in gameState.getLegalActions(agentIndex=currAgentNum):
+                print("GOING THROUGH FOR LOOP AT ACTION",  action)
+                minScore=min(minScore, self.ghostMinFunc(gameState=gameState.generateSuccessor(currAgentNum, action), totalDepthToGoTo=totalDepthToGoTo, currDepth=currDepth, numAgents=numAgents, currAgentNum=currAgentNum+1))
+            return minScore
+        
     def getAction(self, gameState):
         """
         Returns the minimax action from the current gameState using self.depth
@@ -221,18 +301,28 @@ class MinimaxAgent(MultiAgentSearchAgent):
         agentIndex=0 means Pacman, ghosts are >= 1
 
         gameState.generateSuccessor(agentIndex, action):
-        Returns the successor game state after an agent takes an action
+        Returns the successor game state after an agent takes an action                              THIS ONE!!!!!! IMPORTANT
 
         gameState.getNumAgents():
         Returns the total number of agents in the game
 
-        gameState.isWin():
+        gameState.isWin():                                                                         THIS ONE IMPORTANT DID NOT USE IT DO I NEED TO???????
         Returns whether or not the game state is a winning state
 
         gameState.isLose():
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
+
+        #def pacmanMaxFunc(self, gameState, totalDepthToGoTo, currDepth, numAgents):
+
+        print("PICKINJG ACTION", self.depth, "\n", "\n")
+        tuple= self.pacmanMaxFunc(gameState=gameState, totalDepthToGoTo=self.depth, currDepth=1, numAgents=gameState.getNumAgents())
+        print(tuple)
+        
+        return tuple[1]
+
+
         util.raiseNotDefined()
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
