@@ -150,10 +150,14 @@ class ReflexAgent(Agent):
             if newPos in self.makePossibleGhostStates(tuple=ghost.getPosition()):
                 #print(newPos, ghost.getPosition())
                 scoreToReturn -= 200
+
         
-        return scoreToReturn
+       
+
+
         #return scoreToReturn
-        score=self.closestFoodFinder(newPos, newFood)
+        #return scoreToReturn
+        score=self.closestFoodFinder(newPos, currentGameState.getFood())
         #print(action, scoreToReturn+score)
 
         return scoreToReturn + score
