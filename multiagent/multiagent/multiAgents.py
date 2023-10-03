@@ -432,6 +432,84 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
       Your expectimax agent (question 4)
     """
 
+    def pacmanMaxFunc(self, gameState, currDepth, numAgents):
+
+        if gameState.isWin() or gameState.isLose():
+            print("MAX END STATE - PROBS SHOULDNT HAPPEN?")
+            return self.evaluationFunction(gameState)
+
+
+        if currDepth == 1: #if at the first depth need to return the action to take, not just the score
+
+            maxScore=float('-inf')
+            actionToReturn = None
+
+            for action in gameState.getLegalActions(agentIndex=0):
+
+                thisScore=self.ghostMinFunc(gameState.generateSuccessor(agentIndex=0, action=action), currDepth, numAgents, currAgentNum=1) 
+
+                if maxScore < thisScore: 
+                    maxScore = thisScore
+                    actionToReturn = action
+                
+            return (maxScore, actionToReturn)
+        
+        
+        
+        maxScore=float('-inf')
+        scores=[]
+
+        for action in gameState.getLegalActions(agentIndex=0):
+            thisScore=self.ghostMinFunc(gameState.generateSuccessor(0, action), currDepth, numAgents, 1)
+            scores.append(thisScore)
+            maxScore=max(maxScore,thisScore)
+        #print("returning: ", maxScore, "from: ", scores)
+        
+        return maxScore
+
+    
+    def ghostMinFunc(self, gameState, currDepth, numAgents, currAgentNum):
+
+        if gameState.isWin() or gameState.isLose():
+            print("EXPECT WIN/LOSS STATE")
+            return self.evaluationFunction(gameState)
+        
+        if currAgentNum == numAgents-1: #we are on the last ghost, need to call pacman after this one OR return the score if at the right depth
+
+            sumScore=0
+            scores=[]
+
+            for action in gameState.getLegalActions(agentIndex=currAgentNum):
+
+                if currDepth == self.depth:
+                    thisScore=self.evaluationFunction(gameState.generateSuccessor(currAgentNum, action))
+                    scores.append(thisScore)
+                    sumScore+=thisScore
+
+                    
+                
+                else:
+                    #def pacmanMaxFunc(self, gameState, currDepth, numAgents, alpha, beta):
+                    thisScore=self.pacmanMaxFunc(gameState=gameState.generateSuccessor(currAgentNum, action), currDepth=currDepth+1, numAgents=numAgents)
+                    scores.append(thisScore)
+                    sumScore+=thisScore
+                    
+            print("returning: ", sumScore / len(gameState.getLegalActions(agentIndex=currAgentNum)), "from these scores: ", scores)
+            return (sumScore / len(gameState.getLegalActions(agentIndex=currAgentNum)))
+        
+        else: #not on the last ghost, need to pass to next ghost instead of pacman
+
+            sumScore=0
+            scores=[]
+            for action in gameState.getLegalActions(agentIndex=currAgentNum):
+
+                sumScore+=self.ghostMinFunc(gameState.generateSuccessor(currAgentNum, action), currDepth, numAgents, currAgentNum+1)
+                
+            
+            return (sumScore / len(gameState.getLegalActions(currAgentNum)))
+
+    
+
     def getAction(self, gameState):
         """
         Returns the expectimax action using self.depth and self.evaluationFunction
@@ -440,6 +518,10 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         legal moves.
         """
         "*** YOUR CODE HERE ***"
+        #def pacmanMaxFunc(self, gameState, currDepth, numAgents):
+
+        return self.pacmanMaxFunc(gameState, 1, gameState.getNumAgents())[1]
+
         util.raiseNotDefined()
 
 def betterEvaluationFunction(currentGameState):
