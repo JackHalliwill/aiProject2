@@ -329,12 +329,102 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
     """
     Your minimax agent with alpha-beta pruning (question 3)
     """
+    
+    def pacmanMaxFunc(self, gameState, currDepth, numAgents, alpha, beta):
+
+        if gameState.isWin() or gameState.isLose():
+            return self.evaluationFunction(gameState)
+
+
+        if currDepth == 1: #if at the first depth need to return the action to take, not just the score
+
+            maxScore=float('-inf')
+            actionToReturn = None
+
+            for action in gameState.getLegalActions(agentIndex=0):
+
+                thisScore=self.ghostMinFunc(gameState.generateSuccessor(agentIndex=0, action=action), currDepth, numAgents, currAgentNum=1, alpha=alpha, beta=beta) #finish line
+                #def ghostMinFunc(self, gameState, currDepth, numAgents, currAgentNum, alpha, beta):
+                if thisScore > beta:
+                    return thisScore
+                #dont think I need to do the above 2 lines, but the below line is def neccesary
+                alpha = max(alpha, thisScore)
+
+                if maxScore < thisScore: 
+                    maxScore = thisScore
+                    actionToReturn = action
+                
+            return (maxScore, actionToReturn)
+        
+        maxScore = float('-inf')
+
+        for action in gameState.getLegalActions(agentIndex=0):
+            maxScore=max(maxScore, self.ghostMinFunc(gameState.generateSuccessor(0, action), currDepth, numAgents, 1, alpha, beta))#finish this line!!
+
+            if maxScore > beta:#do not prune on equality
+                return maxScore
+            
+            alpha = max(alpha, maxScore)
+        
+        return maxScore
+
+    
+    def ghostMinFunc(self, gameState, currDepth, numAgents, currAgentNum, alpha, beta):
+
+        if gameState.isWin() or gameState.isLose():
+            return self.evaluationFunction(gameState)
+        
+        if currAgentNum == numAgents-1: #we are on the last ghost, need to call pacman after this one OR return the score if at the right depth
+
+            minScore=float('inf')
+
+            for action in gameState.getLegalActions(agentIndex=currAgentNum):
+
+                if currDepth == self.depth:
+                    
+                    minScore=min(minScore, self.evaluationFunction(gameState.generateSuccessor(currAgentNum, action)))
+
+                    if minScore < alpha: 
+                        return minScore
+
+                    beta=min(beta, minScore)
+                
+                else:
+                    #def pacmanMaxFunc(self, gameState, currDepth, numAgents, alpha, beta):
+                    minScore=min(minScore, self.pacmanMaxFunc(gameState=gameState.generateSuccessor(currAgentNum, action), currDepth=currDepth+1, numAgents=numAgents, alpha=alpha, beta=beta))
+
+                    if minScore < alpha: 
+                        return minScore
+                    beta=min(beta, minScore)
+
+            return minScore
+        
+        else: #not on the last ghost, need to pass to next ghost instead of pacman
+
+            minScore = float('inf')
+
+            for action in gameState.getLegalActions(agentIndex=currAgentNum):
+
+                minScore = min(minScore, self.ghostMinFunc(gameState.generateSuccessor(currAgentNum, action), currDepth, numAgents, currAgentNum+1, alpha, beta))
+                if minScore < alpha:
+                    return minScore
+                
+                beta = min(beta, minScore)
+            
+            return minScore
+
+
+
+        
+
 
     def getAction(self, gameState):
         """
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
+        return (self.pacmanMaxFunc(gameState, currDepth=1, numAgents=gameState.getNumAgents(), alpha=float('-inf'), beta=float('inf')))[1]
+
         util.raiseNotDefined()
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
