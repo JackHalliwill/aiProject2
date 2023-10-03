@@ -211,7 +211,13 @@ class MinimaxAgent(MultiAgentSearchAgent):
     
     def pacmanMaxFunc(self, gameState, totalDepthToGoTo, currDepth, numAgents):
 
+
+
         print("AT THE TOP OF PACMAN MAX FUNC AT CURRENT DEPTH OF ", currDepth)
+
+        if gameState.isWin() or gameState.isLose(): 
+            print("WIN/LOSS STATE")
+            return self.evaluationFunction(gameState)
 
         if currDepth == 1: #Jack ignore this its basically just shit code because i originiall wrote the code to only return the Score for minimax, and not the action associated with that score so had to add some shite code
             maxScore=float('-inf')
@@ -242,6 +248,10 @@ class MinimaxAgent(MultiAgentSearchAgent):
     
     def ghostMinFunc(self, gameState, totalDepthToGoTo, currDepth, numAgents, currAgentNum):
 
+        if gameState.isWin() or gameState.isLose(): 
+            print("WIN/LOSS STATE")
+            return self.evaluationFunction(gameState)
+
         print("Looking at ghost: ", currAgentNum, "At Depth: ", currDepth)
 
         if currAgentNum == numAgents - 1: #if we are on the last ghost
@@ -250,7 +260,8 @@ class MinimaxAgent(MultiAgentSearchAgent):
             minScore = float('inf')
             scores=[]
             if len(gameState.getLegalActions(currAgentNum)) == 0: 
-                return float('-inf')
+                print("NO ACTIONS FOR LAST GHOST ARE AVAILABLE, RETURNING -INF")
+                return float('inf')
             for action in gameState.getLegalActions(agentIndex=currAgentNum):
                 
                 if currDepth == self.depth: 
@@ -263,7 +274,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
                 
                 else: 
                     minScore=min(minScore, self.pacmanMaxFunc(gameState=gameState.generateSuccessor(currAgentNum, action), totalDepthToGoTo=totalDepthToGoTo, currDepth=currDepth+1, numAgents=numAgents))
-            print("ABout to return this minScore: ", minScore, "From these Scores", scores)
+            print("ABout to return this minScore: ", minScore, "From these Scores", scores, "at agent", currAgentNum, "at depth", currDepth)
             return minScore
         
         else: 
@@ -308,7 +319,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         print("PICKINJG ACTION", self.depth, "\n", "\n")
         tuple= self.pacmanMaxFunc(gameState=gameState, totalDepthToGoTo=self.depth, currDepth=1, numAgents=gameState.getNumAgents())
         print(tuple)
-
+        
         return tuple[1]
 
 
