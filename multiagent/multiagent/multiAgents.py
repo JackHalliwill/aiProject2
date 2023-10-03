@@ -435,7 +435,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
     def pacmanMaxFunc(self, gameState, currDepth, numAgents):
 
         if gameState.isWin() or gameState.isLose():
-            print("MAX END STATE - PROBS SHOULDNT HAPPEN?")
+            #print("MAX END STATE - PROBS SHOULDNT HAPPEN?")
             return self.evaluationFunction(gameState)
 
 
@@ -471,7 +471,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
     def ghostMinFunc(self, gameState, currDepth, numAgents, currAgentNum):
 
         if gameState.isWin() or gameState.isLose():
-            print("EXPECT WIN/LOSS STATE")
+            #("EXPECT WIN/LOSS STATE")
             return self.evaluationFunction(gameState)
         
         if currAgentNum == numAgents-1: #we are on the last ghost, need to call pacman after this one OR return the score if at the right depth
@@ -494,7 +494,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
                     scores.append(thisScore)
                     sumScore+=thisScore
                     
-            print("returning: ", sumScore / len(gameState.getLegalActions(agentIndex=currAgentNum)), "from these scores: ", scores)
+            #print("returning: ", sumScore / len(gameState.getLegalActions(agentIndex=currAgentNum)), "from these scores: ", scores)
             return (sumScore / len(gameState.getLegalActions(agentIndex=currAgentNum)))
         
         else: #not on the last ghost, need to pass to next ghost instead of pacman
@@ -520,11 +520,55 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         "*** YOUR CODE HERE ***"
         #def pacmanMaxFunc(self, gameState, currDepth, numAgents):
 
+        #print("using epectimax, with depth: ", self.depth)
+
         return self.pacmanMaxFunc(gameState, 1, gameState.getNumAgents())[1]
 
         util.raiseNotDefined()
 
+def manhattanDistance(x1, y1, x2, y2):
+        return abs(x1-x2)+abs(y1-y2)
+    
+        
+
+def closestFoodFinder(tuple, FoodGrid):
+    x=tuple[0]
+    y=tuple[1]
+
+    #print(FoodGrid)
+
+    if FoodGrid[x][y] == True: #something brokjen with this function
+        #print("ANGIEANGIE")
+        return 55
+    
+    #print("Height: ",FoodGrid.height)
+    #print("Width: ", FoodGrid.width)
+
+    rowCounter=0
+    colCounter=0
+
+    minDist=5000
+
+    while rowCounter < FoodGrid.width: 
+        colCounter=0
+        while colCounter < FoodGrid.height:
+            #print(rowCounter, colCounter, FoodGrid[rowCounter][colCounter])
+            if FoodGrid[rowCounter][colCounter] == True:
+                #print("Distance: ", self.manhattanDistance(x, y, rowCounter, colCounter))
+                minDist=min(minDist, manhattanDistance(x, y, rowCounter, colCounter))
+            if minDist==1:
+                return 49
+            colCounter+=1
+
+        rowCounter+=1
+
+    #print(minDist)
+    
+    return(50-minDist)
+
+
 def betterEvaluationFunction(currentGameState):
+    import random
     """
     Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
     evaluation function (question 5).
@@ -532,6 +576,28 @@ def betterEvaluationFunction(currentGameState):
     DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
+
+    currPos=currentGameState.getPacmanPosition()
+    currFood=currentGameState.getFood()
+    #print(currPos)
+    closestFood=closestFoodFinder(currPos, currFood)
+    #print(closestFood)
+
+    ghostDist=0
+    ghost=currentGameState.getGhostStates()[0].getPosition()
+    #print(currPos, ghost)
+    ghostDist=manhattanDistance(currPos[0], currPos[1], ghost[0], ghost[1])
+
+    #print(ghostDist)
+
+    if currentGameState.isLose():
+        #print("HERE")
+        return currentGameState.getScore()
+
+    if currentGameState.isWin():
+        return currentGameState.getScore()+random.random()*20
+    
+    return currentGameState.getScore() + closestFood+random.random()*10 + ghostDist
     util.raiseNotDefined()
 
 # Abbreviation
